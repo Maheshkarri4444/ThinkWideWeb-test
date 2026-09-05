@@ -210,3 +210,12 @@ All **4 bugs** (cross-batch deduplication, cross-campaign `unique_opens` trackin
   diff actual.txt expected_output.txt     # Output is completely empty (exact match)
   go run -race . events.jsonl             # Passes with 0 data races
   ```
+
+---
+
+## 3. Additional Go Experience
+
+If you would like to have a deeper look at my Golang skills and architectural style, feel free to check out **[Examify](https://github.com/Maheshkarri4444/wtexamify)** — an online exam-conducting platform I built about 1.5 years ago with a backend written entirely in Go.
+
+It is actively used to conduct some lab examinations across our college, with **720+ students** having taken exams on the platform and a database currently storing **2,000+ submitted answer sheets**.
+
