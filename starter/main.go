@@ -9,12 +9,18 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /ping", handlePing)
 	mux.HandleFunc("POST /events", handlePostEvents)
 	mux.HandleFunc("GET /campaigns/{campaignID}/stats", handleGetStats)
 
 	addr := ":8080"
 	fmt.Printf("listening on %s\n", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
+}
+
+// handlePing handles health check requests.
+func handlePing(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"message": "pong"})
 }
 
 // handlePostEvents ingests a JSON array of events.
