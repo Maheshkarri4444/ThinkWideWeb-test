@@ -46,6 +46,12 @@ var stats = map[string]*CampaignStats{}
 // track(), which runs on the main goroutine.
 var openedBy = map[string]bool{}
 
+// seen tracks event IDs across the whole file to prevent duplicate processing.
+var seen = map[string]bool{}
+
+// applyMu protects concurrent counter increments in apply().
+var applyMu sync.Mutex
+
 const (
 	batchSize  = 200
 	numWorkers = 8
@@ -98,7 +104,10 @@ func main() {
 // ordered access, then fans the counter updates out to a worker pool. The
 // counters are plain ints, so the increments themselves are cheap.
 func processBatch(events []Event) {
-	seen := make(map[string]bool) // event IDs we have already processed
+	//bug
+	// seen := make(map[string]bool) // event IDs we have already processed
+	//fix
+	// seen map moved to package scope to deduplicate across the whole file
 	unique := make([]Event, 0, len(events))
 	for _, ev := range events {
 		if seen[ev.EventID] {
@@ -136,12 +145,19 @@ func track(ev Event) {
 	cs := stats[ev.CampaignID]
 	switch ev.Type {
 	case "opened":
-		if !openedBy[ev.ContactID] {
-			openedBy[ev.ContactID] = true
+		//bug
+		// if !openedBy[ev.ContactID] {
+		// 	openedBy[ev.ContactID] = true
+		//fix
+		if !openedBy[ev.CampaignID+":"+ev.ContactID] {
+			openedBy[ev.CampaignID+":"+ev.ContactID] = true
 			cs.UniqueOpens++
 		}
 	case "delivered":
-		day := ev.Timestamp.Local().Format("2006-01-02")
+		//bug
+		// day := ev.Timestamp.Local().Format("2006-01-02")
+		//fix
+		day := ev.Timestamp.UTC().Format("2006-01-02")
 		cs.DailyDelivered[day]++
 	}
 }
@@ -149,6 +165,11 @@ func track(ev Event) {
 // apply updates the counters for a single event. The stats record always
 // exists at this point.
 func apply(ev Event) {
+	//bug
+	// cs := stats[ev.CampaignID]
+	//fix
+	applyMu.Lock()
+	defer applyMu.Unlock()
 	cs := stats[ev.CampaignID]
 	switch ev.Type {
 	case "sent":

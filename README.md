@@ -198,14 +198,15 @@ The `starter/` directory contains the event ingestion and campaign analytics HTT
 
 ## 2. Debugging Section (Part 3)
 
-The `debugging/` folder contains a CLI application that reads `events.jsonl` (20,000 lines) and computes per-campaign statistics.
+The `debugging/` folder contains a CLI application that processes `events.jsonl` (20,000 lines) and computes per-campaign statistics.
 
-### Overview & Rules
-* **Goal**: Identify and resolve **4 specific bugs** (none are syntax errors; includes concurrency race conditions detectable via `go run -race`).
-* **Verification**: Output must exactly match `expected_output.txt`:
+All **4 bugs** (cross-batch deduplication, cross-campaign `unique_opens` tracking, UTC date bucket formatting, and concurrency data races) have been resolved with minimal fixes.
+
+* **Detailed Bug Report**: See [BUGS.md](BUGS.md) for full root cause analysis, minimal diff explanations, and verification logs.
+* **Run & Verify**:
   ```bash
   cd debugging
   go run . events.jsonl > actual.txt
-  diff actual.txt expected_output.txt
+  diff actual.txt expected_output.txt     # Output is completely empty (exact match)
+  go run -race . events.jsonl             # Passes with 0 data races
   ```
-* **Documentation**: Findings and minimal code fixes are documented in `BUGS.md`.
